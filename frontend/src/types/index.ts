@@ -1,26 +1,30 @@
-// TypeScript type definitions
 export interface WishList {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   url: string;
-  createdBy: string;
+  created_by: string;
+  created_at: string;
 }
 
-export interface Wish {
+export interface GuestWish {
   id: string;
-  wishListId: string;
+  wishlist_id: string;
   name: string;
-  description: string;
-  link?: string;
-  imageURL?: string;
+  description: string | null;
+  link: string | null;
+  image_url: string | null;
   reserved: boolean;
-  reservedBy?: string;
+  created_at: string;
+}
+
+export interface AdminWish extends GuestWish {
+  reserved_by: string | null;
 }
 
 export interface Reservation {
   id: string;
-  wishId: string;
-  guestName: string;
-  reservedAt: string;
+  wish_id: string;
+  guest_name: string;
+  reserved_at: string;
 }
