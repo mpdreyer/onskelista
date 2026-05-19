@@ -1,4 +1,5 @@
-// Home page
+import LandingHero from "@/components/LandingHero"
+
 export default function Home() {
-  return null;
+  return <LandingHero />
 }
