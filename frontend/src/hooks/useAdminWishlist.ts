@@ -30,8 +30,6 @@ export function useAdminWishlist(id: string | undefined) {
       .eq("wishlist_id", id)
       .order("created_at", { ascending: true })
 
-    setWishes((wishData as AdminWish[]) ?? [])
-
     const wishIds = (wishData ?? []).map((w: AdminWish) => w.id)
     if (wishIds.length > 0) {
       const { data: resData } = await supabase
@@ -40,6 +38,21 @@ export function useAdminWishlist(id: string | undefined) {
         .in("wish_id", wishIds)
 
       setReservations(resData ?? [])
+
+      const countMap = new Map<string, number>()
+      for (const r of resData ?? []) {
+        countMap.set(r.wish_id, (countMap.get(r.wish_id) ?? 0) + 1)
+      }
+      setWishes(
+        (wishData as AdminWish[]).map((w) => ({
+          ...w,
+          reservation_count: countMap.get(w.id) ?? 0,
+        }))
+      )
+    } else {
+      setWishes(
+        (wishData as AdminWish[]).map((w) => ({ ...w, reservation_count: 0 }))
+      )
     }
 
     setLoading(false)
