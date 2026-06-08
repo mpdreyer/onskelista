@@ -28,6 +28,11 @@ export default function WishCard({ wish, hasReserved, onReserve, onUnreserve }: 
                 {wish.reservation_count} har paxat
               </span>
             )}
+            {wish.allow_multiple && wish.reservation_count === 0 && (
+              <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-500">
+                Flera kan boka
+              </span>
+            )}
             {!wish.allow_multiple && wish.reserved && (
               <span className="shrink-0 rounded-full bg-reserved/20 px-2.5 py-0.5 text-xs font-medium text-reserved">
                 Paxad
@@ -73,7 +78,7 @@ export default function WishCard({ wish, hasReserved, onReserve, onUnreserve }: 
           )}
         </div>
       ) : wish.reserved ? (
-        onUnreserve && (
+        hasReserved && onUnreserve && (
           <button
             onClick={onUnreserve}
             className="w-full rounded-md border border-border px-4 py-2 text-sm hover:bg-secondary"

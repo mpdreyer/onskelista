@@ -1,15 +1,22 @@
-import { useState, FormEvent } from "react"
+import { useState, useEffect, FormEvent } from "react"
 
 interface UnreserveDialogProps {
   wishName: string
+  defaultName?: string
   open: boolean
   onClose: () => void
   onConfirm: (guestName: string) => Promise<void>
 }
 
-export default function UnreserveDialog({ wishName, open, onClose, onConfirm }: UnreserveDialogProps) {
-  const [name, setName] = useState("")
+export default function UnreserveDialog({ wishName, defaultName, open, onClose, onConfirm }: UnreserveDialogProps) {
+  const [name, setName] = useState(defaultName ?? "")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (open && defaultName) {
+      setName(defaultName)
+    }
+  }, [open, defaultName])
 
   if (!open) return null
 

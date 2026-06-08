@@ -148,6 +148,7 @@ export default function GuestWishListPage() {
 
       <UnreserveDialog
         wishName={unreserveTarget?.name ?? ""}
+        defaultName={guestName}
         open={!!unreserveTarget}
         onClose={() => setUnreserveTarget(null)}
         onConfirm={handleUnreserve}
