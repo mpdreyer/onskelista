@@ -3,11 +3,12 @@ import { GuestWish } from "@/types"
 
 interface WishCardProps {
   wish: GuestWish
+  hasReserved?: boolean
   onReserve?: () => void
   onUnreserve?: () => void
 }
 
-export default function WishCard({ wish, onReserve, onUnreserve }: WishCardProps) {
+export default function WishCard({ wish, hasReserved, onReserve, onUnreserve }: WishCardProps) {
   return (
     <div className="rounded-lg border border-border bg-white p-4 space-y-3">
       {wish.image_url && (
@@ -21,11 +22,18 @@ export default function WishCard({ wish, onReserve, onUnreserve }: WishCardProps
       <div className="space-y-1">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold">{wish.name}</h3>
-          {wish.reserved && (
-            <span className="shrink-0 rounded-full bg-reserved/20 px-2.5 py-0.5 text-xs font-medium text-reserved">
-              Paxad
-            </span>
-          )}
+          <div className="flex gap-1.5 shrink-0">
+            {wish.allow_multiple && wish.reservation_count > 0 && (
+              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                {wish.reservation_count} har paxat
+              </span>
+            )}
+            {!wish.allow_multiple && wish.reserved && (
+              <span className="shrink-0 rounded-full bg-reserved/20 px-2.5 py-0.5 text-xs font-medium text-reserved">
+                Paxad
+              </span>
+            )}
+          </div>
         </div>
 
         {wish.description && (
@@ -45,7 +53,26 @@ export default function WishCard({ wish, onReserve, onUnreserve }: WishCardProps
         )}
       </div>
 
-      {wish.reserved ? (
+      {wish.allow_multiple ? (
+        <div className="flex gap-2">
+          {!hasReserved && onReserve && (
+            <button
+              onClick={onReserve}
+              className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            >
+              Paxa denna
+            </button>
+          )}
+          {hasReserved && onUnreserve && (
+            <button
+              onClick={onUnreserve}
+              className="flex-1 rounded-md border border-border px-4 py-2 text-sm hover:bg-secondary"
+            >
+              Avboka
+            </button>
+          )}
+        </div>
+      ) : wish.reserved ? (
         onUnreserve && (
           <button
             onClick={onUnreserve}
