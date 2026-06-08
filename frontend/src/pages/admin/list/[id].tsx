@@ -20,7 +20,7 @@ export default function AdminListEditor() {
   const [editingWish, setEditingWish] = useState<AdminWish | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
 
-  async function handleAddWish(data: { name: string; description: string; link: string; image_url: string }) {
+  async function handleAddWish(data: { name: string; description: string; link: string; image_url: string; allow_multiple: boolean }) {
     if (!id) return
     const { error } = await supabase.from("wishes").insert({
       wishlist_id: id,
@@ -28,6 +28,7 @@ export default function AdminListEditor() {
       description: data.description || null,
       link: data.link || null,
       image_url: data.image_url || null,
+      allow_multiple: data.allow_multiple,
     })
     if (error) {
       toast.error("Kunde inte lägga till: " + error.message)
@@ -38,7 +39,7 @@ export default function AdminListEditor() {
     refetch()
   }
 
-  async function handleEditWish(data: { name: string; description: string; link: string; image_url: string }) {
+  async function handleEditWish(data: { name: string; description: string; link: string; image_url: string; allow_multiple: boolean }) {
     if (!editingWish) return
     const { error } = await supabase
       .from("wishes")
@@ -47,6 +48,7 @@ export default function AdminListEditor() {
         description: data.description || null,
         link: data.link || null,
         image_url: data.image_url || null,
+        allow_multiple: data.allow_multiple,
       })
       .eq("id", editingWish.id)
     if (error) {
@@ -99,8 +101,8 @@ export default function AdminListEditor() {
     router.push("/admin")
   }
 
-  function getReservation(wishId: string) {
-    return reservations.find((r) => r.wish_id === wishId)
+  function getReservations(wishId: string) {
+    return reservations.filter((r) => r.wish_id === wishId)
   }
 
   if (loading) {
@@ -173,7 +175,6 @@ export default function AdminListEditor() {
               <p className="text-sm text-muted-foreground">Inga önskemål tillagda ännu.</p>
             ) : (
               wishes.map((wish) => {
-                const reservation = getReservation(wish.id)
                 return (
                   <div key={wish.id} className="rounded-lg border border-border bg-white p-4 space-y-2">
                     {editingWish?.id === wish.id ? (
@@ -182,6 +183,7 @@ export default function AdminListEditor() {
                         initialDescription={wish.description ?? ""}
                         initialLink={wish.link ?? ""}
                         initialImageUrl={wish.image_url ?? ""}
+                        initialAllowMultiple={wish.allow_multiple}
                         onSubmit={handleEditWish}
                         onCancel={() => setEditingWish(null)}
                         submitLabel="Spara"
@@ -189,7 +191,14 @@ export default function AdminListEditor() {
                     ) : (
                       <>
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-medium">{wish.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">{wish.name}</h3>
+                            {wish.allow_multiple && (
+                              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                                Flera kan boka
+                              </span>
+                            )}
+                          </div>
                           <div className="flex gap-2 shrink-0">
                             <button
                               onClick={() => { setEditingWish(wish); setShowAddForm(false) }}
@@ -211,15 +220,17 @@ export default function AdminListEditor() {
                         )}
 
                         {wish.reserved ? (
-                          <div className="rounded-md bg-reserved/10 px-3 py-2 text-sm">
-                            <span className="font-medium text-reserved">Paxad</span>
-                            {" av "}
-                            <span className="font-medium">{wish.reserved_by}</span>
-                            {reservation && (
-                              <span className="text-muted-foreground">
-                                {" "}— {new Date(reservation.reserved_at).toLocaleDateString("sv-SE")}
-                              </span>
-                            )}
+                          <div className="space-y-1">
+                            {getReservations(wish.id).map((res) => (
+                              <div key={res.id} className="rounded-md bg-reserved/10 px-3 py-2 text-sm">
+                                <span className="font-medium text-reserved">Paxad</span>
+                                {" av "}
+                                <span className="font-medium">{res.guest_name}</span>
+                                <span className="text-muted-foreground">
+                                  {" "}&mdash; {new Date(res.reserved_at).toLocaleDateString("sv-SE")}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         ) : (
                           <span className="text-sm text-muted-foreground">Ledig</span>
