@@ -1,5 +1,5 @@
 import { useRouter } from "next/router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import Link from "next/link"
 import { Gift } from "lucide-react"
@@ -18,6 +18,42 @@ export default function GuestWishListPage() {
   const [reserveTarget, setReserveTarget] = useState<GuestWish | null>(null)
   const [unreserveTarget, setUnreserveTarget] = useState<GuestWish | null>(null)
 
+  const [guestName, setGuestName] = useState<string>("")
+  const [reservedWishIds, setReservedWishIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("guestName") ?? ""
+    setGuestName(storedName)
+    try {
+      const stored = JSON.parse(localStorage.getItem("reservedWishes") ?? "[]")
+      setReservedWishIds(new Set(stored))
+    } catch {
+      setReservedWishIds(new Set())
+    }
+  }, [])
+
+  function trackReservation(wishId: string, name: string) {
+    localStorage.setItem("guestName", name)
+    setGuestName(name)
+    setReservedWishIds((prev) => {
+      const next = new Set(prev)
+      next.add(wishId)
+      const arr = Array.from(next)
+      localStorage.setItem("reservedWishes", JSON.stringify(arr))
+      return next
+    })
+  }
+
+  function untrackReservation(wishId: string) {
+    setReservedWishIds((prev) => {
+      const next = new Set(prev)
+      next.delete(wishId)
+      const arr = Array.from(next)
+      localStorage.setItem("reservedWishes", JSON.stringify(arr))
+      return next
+    })
+  }
+
   async function handleReserve(guestName: string) {
     if (!reserveTarget) return
     const { data, error } = await supabase.rpc("reserve_wish", {
@@ -30,6 +66,7 @@ export default function GuestWishListPage() {
       return
     }
     toast.success("Paxad! Du har reserverat presenten.")
+    trackReservation(reserveTarget.id, guestName)
     refetch()
   }
 
@@ -44,6 +81,7 @@ export default function GuestWishListPage() {
       return
     }
     toast.success("Reservation avbokad.")
+    untrackReservation(unreserveTarget.id)
     refetch()
   }
 
@@ -85,6 +123,7 @@ export default function GuestWishListPage() {
               <WishCard
                 key={wish.id}
                 wish={wish}
+                hasReserved={reservedWishIds.has(wish.id)}
                 onReserve={() => setReserveTarget(wish)}
                 onUnreserve={() => setUnreserveTarget(wish)}
               />
@@ -101,6 +140,7 @@ export default function GuestWishListPage() {
 
       <ReserveDialog
         wishName={reserveTarget?.name ?? ""}
+        defaultName={guestName}
         open={!!reserveTarget}
         onClose={() => setReserveTarget(null)}
         onConfirm={handleReserve}
