@@ -15,6 +15,8 @@ export interface GuestWish {
   link: string | null;
   image_url: string | null;
   reserved: boolean;
+  allow_multiple: boolean;
+  reservation_count: number;
   created_at: string;
 }
 

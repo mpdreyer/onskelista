@@ -5,7 +5,8 @@ interface WishFormProps {
   initialDescription?: string
   initialLink?: string
   initialImageUrl?: string
-  onSubmit: (data: { name: string; description: string; link: string; image_url: string }) => Promise<void>
+  initialAllowMultiple?: boolean
+  onSubmit: (data: { name: string; description: string; link: string; image_url: string; allow_multiple: boolean }) => Promise<void>
   onCancel?: () => void
   submitLabel: string
 }
@@ -15,6 +16,7 @@ export default function WishForm({
   initialDescription = "",
   initialLink = "",
   initialImageUrl = "",
+  initialAllowMultiple,
   onSubmit,
   onCancel,
   submitLabel,
@@ -23,17 +25,19 @@ export default function WishForm({
   const [description, setDescription] = useState(initialDescription)
   const [link, setLink] = useState(initialLink)
   const [imageUrl, setImageUrl] = useState(initialImageUrl)
+  const [allowMultiple, setAllowMultiple] = useState(initialAllowMultiple ?? false)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setLoading(true)
-    await onSubmit({ name, description, link, image_url: imageUrl })
+    await onSubmit({ name, description, link, image_url: imageUrl, allow_multiple: allowMultiple })
     if (!initialName) {
       setName("")
       setDescription("")
       setLink("")
       setImageUrl("")
+      setAllowMultiple(false)
     }
     setLoading(false)
   }
@@ -84,6 +88,16 @@ export default function WishForm({
           placeholder="https://..."
           className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          id="wish-multi"
+          type="checkbox"
+          checked={allowMultiple}
+          onChange={(e) => setAllowMultiple(e.target.checked)}
+          className="h-4 w-4 rounded border-border"
+        />
+        <label htmlFor="wish-multi" className="text-sm">Flera kan boka denna</label>
       </div>
       <div className="flex gap-2">
         <button
